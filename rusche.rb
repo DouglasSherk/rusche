@@ -6,14 +6,20 @@ class Rusche
     exit
   end
 
+  def is_operator(node)
+    node == :+ || node == :- || node == :* || node == :/ || node == :== || node == :< || node == :<= || node == :> || node == :>=
+  end
+
   def defn(nodes)
     return nodes unless nodes.is_a?(Array)
     text = ""
     for i in 0..nodes.length
       node = nodes[i]
-      if node.is_a?(Array)
+      if node == :if
+        break
+      elsif node.is_a?(Array)
         text += "#{defn(node)}"
-      elsif node == :const || node == :lit
+      elsif node == :const || node == :lit || node == :lvar
         text += "#{nodes[i+1]}"
       elsif node == :call
         args = []
@@ -22,7 +28,7 @@ class Rusche
           if nodes[j].is_a?(Array)
             args.push defn(nodes[j])
           else
-            if nodes[j] == :*
+            if is_operator(nodes[j])
               args.unshift nodes[j]
             else
               args.push nodes[j]
