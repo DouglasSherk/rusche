@@ -22,7 +22,7 @@ class Rusche
         text = ""
         text += "#{defn(nodes[i+1])} "
         text += "#{defn(nodes[i+2])}"
-        text = "(#{text})\n"
+        text = "[#{text}]\n"
       end
 
       # This does weird behavior on |node|, be careful here.
@@ -42,11 +42,7 @@ class Rusche
         break
       end
 
-      if node.is_a?(Array)
-        text += "#{defn(node)}"
-      elsif node == :const || node == :lit || node == :lvar
-        text += "#{nodes[i+1]}"
-      elsif node == :call
+      def get_args_from_nodes(nodes, i)
         args = []
         for j in i+1..nodes.length - 1
           next if nodes[j].nil?
@@ -60,6 +56,20 @@ class Rusche
             end
           end
         end
+        args
+      end
+
+      if node.is_a?(Array)
+        text += "#{defn(node)}"
+      elsif node == :and || node == :or
+        args = get_args_from_nodes(nodes, i)
+        args.unshift node
+        text += "(#{args * " "})" unless args.empty?
+        break
+      elsif node == :const || node == :lit || node == :lvar
+        text += "#{nodes[i+1]}"
+      elsif node == :call
+        args = get_args_from_nodes(nodes, i)
         text += "(#{args * " "})" unless args.empty?
         break
       end
@@ -103,7 +113,7 @@ class Rusche
   end
 
   def main
-    reflect_on_file('test.rb')
+    reflect_on_file('test2.rb')
   end
 end
 
