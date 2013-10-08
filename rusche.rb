@@ -52,6 +52,15 @@ class Rusche
         args
       end
 
+      def special_case_cons_list(nodes, i)
+        # Rearrange expression into the format Scheme wants.
+        args = []
+        args.push :cons
+        args.push defn(nodes[i+3])
+        args.push defn(nodes[i+1])
+        args
+      end
+
       # This does weird behavior on |node|, be careful here.
       if node == :if
         text += "cond "
@@ -79,8 +88,16 @@ class Rusche
         break
       elsif node == :const || node == :lit || node == :lvar
         text += "#{nodes[i+1]}"
+      elsif node == :array
+        text += "empty"
       elsif node == :call
-        args = get_args_from_nodes(nodes, i)
+        args =
+          if nodes[i+2] == :push
+            special_case_cons_list(nodes, i)
+          else
+            get_args_from_nodes(nodes, i)
+          end
+
         text += "(#{args * " "})" unless args.empty?
         break
       end
@@ -124,7 +141,7 @@ class Rusche
   end
 
   def main
-    reflect_on_file('fib.rb')
+    reflect_on_file('list.rb')
   end
 end
 
