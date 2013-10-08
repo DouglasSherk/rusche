@@ -6,6 +6,22 @@ class Rusche
     exit
   end
 
+  def block_out
+    @indent -= 1
+  end
+
+  def block_in
+    @indent += 1
+  end
+
+  def indent
+    text = ""
+    for i in 1..@indent
+      text += "  "
+    end
+    text
+  end
+
   def convert_operator(node)
     case node
     when :==
@@ -32,7 +48,8 @@ class Rusche
         text = ""
         text += "#{defn(nodes[i+1])} "
         text += "#{defn(nodes[i+2])}"
-        text = "[#{text}]\n"
+        text = "#{indent}[#{text}]\n"
+        text
       end
 
       def get_args_from_nodes(nodes, i)
@@ -69,7 +86,8 @@ class Rusche
 
       # This does weird behavior on |node|, be careful here.
       if node == :if
-        text += "cond "
+        text += "cond\n"
+        block_in
         if_nodes = nodes
         if_node = node
         while if_node == :if
@@ -78,10 +96,11 @@ class Rusche
           if_node = if_nodes[0]
           if !if_node.nil? && if_node != :if
             args = get_args_from_nodes(if_nodes, 0)
-            text += "[else (#{args * " "})]" unless args.empty?
+            text += "#{indent}[else (#{args * " "})]" unless args.empty?
           end
         end
         text = "(#{text})"
+        block_out
         break
       end
 
@@ -116,12 +135,14 @@ class Rusche
   end
 
   def append_cdecl(nodes)
-    @text += "(define (#{nodes[1]} #{nodes[2][0] == :lit ? nodes[2][1] : defn(nodes[2])}))\n"
+    @text += "(define (#{nodes[1]} #{nodes[2][0] == :lit ? nodes[2][1] : defn(nodes[2])}))\n\n"
   end
 
   def append_defn(nodes)
     args = nodes[2] == s(:args) ? "" : " " + (nodes[2].slice(1, nodes[2].length - 1) * " ")
-    @text += "(define (#{nodes[1]}#{args}) #{defn(nodes[3])})\n"
+    block_in
+    @text += "(define (#{nodes[1]}#{args})\n#{indent}#{defn(nodes[3])})\n\n"
+    block_out
   end
 
   def reflect_nodes(nodes)
@@ -139,6 +160,7 @@ class Rusche
 
   def reflect_on_file(file)
     @text = ""
+    @indent = 0
 
     parsed = RubyParser.new.parse(File.read(file))
     bail("Invalid format. You must provide a module only.") if parsed[0] != :module
