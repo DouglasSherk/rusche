@@ -19,15 +19,13 @@ class Rusche
         args = []
         for j in i..nodes.length - 1
           if nodes[j+1].is_a?(Array)
-            args.push defn(nodes[j+1])
+            args.push defn(nodes[j+1]) unless nodes[j+1].nil?
           else
-            args.push nodes[j+1]
+            args.push nodes[j+1] unless nodes[j+1].nil?
           end
         end
-        puts "!!!"
-        puts args
-      elsif node == :* || node == :== || node == :+ || node == :- || node == :< || node == :> || node == :<= || node == :>=
-        text += node.to_s
+        text += "(#{args * " "})"
+        break
       end
     end
     text
