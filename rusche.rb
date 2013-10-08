@@ -9,26 +9,18 @@ class Rusche
   def defn(nodes)
     #bail("Not a function call.") if nodes[0] == :lit
     return nodes unless nodes.is_a?(Array)
+    text = ""
     for i in 0..nodes.length
-      puts nodes.inspect
       node = nodes[i]
-      text = ""
       if node.is_a?(Array)
-        if node[0] != :lit
-          text += "(#{defn(nodes[i])})" if nodes.length - i <= 1
-          text += "(#{defn(nodes.slice(i, nodes.length - i))})" if nodes.length - i > 1
-        else
-          puts "nodes i+1: #{nodes[i+1]}"
-          text += "(#{nodes[i+1]})"
-        end
-      else
-        puts "SLICING " + nodes.inspect + " INTO " + nodes.slice(i, nodes.length - i - 1).inspect
-        text += "(#{defn(nodes[i])})" if nodes.length - i <= 1
-        text += "(#{defn(nodes.slice(i, nodes.length - i))})" if nodes.length - i > 1
+        text += "(#{defn(node)})"
+      elsif node == :const || node == :lit
+        text += "#{nodes[i+1]}"
+      elsif node == :* || node == :== || node == :+ || node == :- || node == :< || node == :> || node == :<= || node == :>=
+        text += node.to_s
       end
-      @text += text
-      @text += "\n"
     end
+    text
   end
 
   def append_cdecl(nodes)
