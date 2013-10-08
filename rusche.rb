@@ -17,11 +17,16 @@ class Rusche
         text += "#{nodes[i+1]}"
       elsif node == :call
         args = []
-        for j in i..nodes.length - 1
-          if nodes[j+1].is_a?(Array)
-            args.push defn(nodes[j+1]) unless nodes[j+1].nil?
+        for j in i+1..nodes.length - 1
+          next if nodes[j].nil?
+          if nodes[j].is_a?(Array)
+            args.push defn(nodes[j])
           else
-            args.push nodes[j+1] unless nodes[j+1].nil?
+            if nodes[j] == :*
+              args.unshift nodes[j]
+            else
+              args.push nodes[j]
+            end
           end
         end
         text += "(#{args * " "})" unless args.empty?
