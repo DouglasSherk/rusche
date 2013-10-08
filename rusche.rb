@@ -12,7 +12,7 @@ class Rusche
     for i in 0..nodes.length
       node = nodes[i]
       if node.is_a?(Array)
-        text += "(#{defn(node)})"
+        text += "#{defn(node)}"
       elsif node == :const || node == :lit
         text += "#{nodes[i+1]}"
       elsif node == :call
@@ -24,7 +24,7 @@ class Rusche
             args.push nodes[j+1] unless nodes[j+1].nil?
           end
         end
-        text += "(#{args * " "})"
+        text += "(#{args * " "})" unless args.empty?
         break
       end
     end
@@ -37,7 +37,7 @@ class Rusche
 
   def append_defn(nodes)
     args = nodes[2] == s(:args) ? "" : " " + (nodes[2].slice(1, nodes[2].length - 1) * " ")
-    @text += "(define (#{nodes[1]}#{args}) (#{defn(nodes[3])}))"
+    @text += "(define (#{nodes[1]}#{args}) #{defn(nodes[3])})\n"
   end
 
   def reflect_nodes(nodes)
