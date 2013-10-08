@@ -95,7 +95,9 @@ class Rusche
       elsif node == :const || node == :lit || node == :lvar
         text += "#{nodes[i+1]}"
       elsif node == :array
-        text += "empty"
+        args = get_args_from_nodes(nodes, i)
+        text += args.length > 0 ? "'(#{args * " "})" : "empty"
+        break
       elsif node == :call
         args =
           if nodes[i+2] == :push
@@ -149,7 +151,7 @@ class Rusche
   end
 
   def main
-    reflect_on_file('list.rb')
+    reflect_on_file('list2.rb')
   end
 end
 
