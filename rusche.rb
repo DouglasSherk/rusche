@@ -61,6 +61,12 @@ class Rusche
         args
       end
 
+      def special_case_empty_list(nodes, i)
+        args = []
+        args.push :empty?
+        args.push defn(nodes[i+1])
+      end
+
       # This does weird behavior on |node|, be careful here.
       if node == :if
         text += "cond "
@@ -94,6 +100,8 @@ class Rusche
         args =
           if nodes[i+2] == :push
             special_case_cons_list(nodes, i)
+          elsif nodes[i+2] == :empty?
+            special_case_empty_list(nodes, i)
           else
             get_args_from_nodes(nodes, i)
           end
