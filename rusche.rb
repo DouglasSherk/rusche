@@ -12,12 +12,37 @@ class Rusche
 
   def defn(nodes)
     return nodes unless nodes.is_a?(Array)
+
     text = ""
+
     for i in 0..nodes.length
       node = nodes[i]
+
+      def parseIf(nodes, i)
+        text = ""
+        text += "#{defn(nodes[i+1])} "
+        text += "#{defn(nodes[i+2])}"
+        text = "(#{text})\n"
+      end
+
+      # This does weird behavior on |node|, be careful here.
       if node == :if
+        text += "cond "
+        if_nodes = nodes
+        if_node = node
+        while if_node == :if
+          text += parseIf(if_nodes, i)
+          if_nodes = if_nodes[i+3]
+          if_node = if_nodes[0]
+          if !if_node.nil? && if_node != :if
+            text += "(else #{if_nodes[1]})"
+          end
+        end
+        text = "(#{text})"
         break
-      elsif node.is_a?(Array)
+      end
+
+      if node.is_a?(Array)
         text += "#{defn(node)}"
       elsif node == :const || node == :lit || node == :lvar
         text += "#{nodes[i+1]}"
