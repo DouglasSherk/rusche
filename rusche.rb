@@ -6,6 +6,16 @@ class Rusche
     exit
   end
 
+  def convert_operator(node)
+    case node
+    when :==
+      # Bug with Ruby? I can't use |:=| here for some reason.
+      "="
+    else
+      node
+    end
+  end
+
   def is_operator(node)
     node == :+ || node == :- || node == :* || node == :/ || node == :== || node == :< || node == :<= || node == :> || node == :>=
   end
@@ -25,6 +35,23 @@ class Rusche
         text = "[#{text}]\n"
       end
 
+      def get_args_from_nodes(nodes, i)
+        args = []
+        for j in i+1..nodes.length - 1
+          next if nodes[j].nil?
+          if nodes[j].is_a?(Array)
+            args.push defn(nodes[j])
+          else
+            if is_operator(nodes[j])
+              args.unshift convert_operator(nodes[j])
+            else
+              args.push nodes[j]
+            end
+          end
+        end
+        args
+      end
+
       # This does weird behavior on |node|, be careful here.
       if node == :if
         text += "cond "
@@ -35,28 +62,12 @@ class Rusche
           if_nodes = if_nodes[i+3]
           if_node = if_nodes[0]
           if !if_node.nil? && if_node != :if
-            text += "(else #{if_nodes[1]})"
+            args = get_args_from_nodes(if_nodes, 0)
+            text += "[else (#{args * " "})]" unless args.empty?
           end
         end
         text = "(#{text})"
         break
-      end
-
-      def get_args_from_nodes(nodes, i)
-        args = []
-        for j in i+1..nodes.length - 1
-          next if nodes[j].nil?
-          if nodes[j].is_a?(Array)
-            args.push defn(nodes[j])
-          else
-            if is_operator(nodes[j])
-              args.unshift nodes[j]
-            else
-              args.push nodes[j]
-            end
-          end
-        end
-        args
       end
 
       if node.is_a?(Array)
@@ -113,7 +124,7 @@ class Rusche
   end
 
   def main
-    reflect_on_file('test2.rb')
+    reflect_on_file('fib.rb')
   end
 end
 
