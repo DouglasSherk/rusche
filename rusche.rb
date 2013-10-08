@@ -7,7 +7,6 @@ class Rusche
   end
 
   def defn(nodes)
-    #bail("Not a function call.") if nodes[0] == :lit
     return nodes unless nodes.is_a?(Array)
     text = ""
     for i in 0..nodes.length
@@ -16,6 +15,17 @@ class Rusche
         text += "(#{defn(node)})"
       elsif node == :const || node == :lit
         text += "#{nodes[i+1]}"
+      elsif node == :call
+        args = []
+        for j in i..nodes.length - 1
+          if nodes[j+1].is_a?(Array)
+            args.push defn(nodes[j+1])
+          else
+            args.push nodes[j+1]
+          end
+        end
+        puts "!!!"
+        puts args
       elsif node == :* || node == :== || node == :+ || node == :- || node == :< || node == :> || node == :<= || node == :>=
         text += node.to_s
       end
@@ -24,12 +34,12 @@ class Rusche
   end
 
   def append_cdecl(nodes)
-    #bail("Constants must be literals, for now.") if nodes[2][0] != :lit
-    @text += "(define #{nodes[1]} (#{nodes[2][0] == :lit ? nodes[2][1] : defn(nodes[2])}))\n"
+    @text += "(define (#{nodes[1]} #{nodes[2][0] == :lit ? nodes[2][1] : defn(nodes[2])}))\n"
   end
 
   def append_defn(nodes)
-    @text += "ohai"
+    args = nodes[2] == s(:args) ? "" : " " + (nodes[2].slice(1, nodes[2].length - 1) * " ")
+    @text += "(define (#{nodes[1]}#{args}) (#{defn(nodes[3])}))"
   end
 
   def reflect_nodes(nodes)
