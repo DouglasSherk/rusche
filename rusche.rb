@@ -6,17 +6,47 @@ class Rusche
     exit
   end
 
+  def defn(nodes)
+    #bail("Not a function call.") if nodes[0] == :lit
+    return nodes unless nodes.is_a?(Array)
+    for i in 0..nodes.length
+      puts nodes.inspect
+      node = nodes[i]
+      text = ""
+      if node.is_a?(Array)
+        if node[0] != :lit
+          text += "(#{defn(nodes[i])})" if nodes.length - i <= 1
+          text += "(#{defn(nodes.slice(i, nodes.length - i))})" if nodes.length - i > 1
+        else
+          puts "nodes i+1: #{nodes[i+1]}"
+          text += "(#{nodes[i+1]})"
+        end
+      else
+        puts "SLICING " + nodes.inspect + " INTO " + nodes.slice(i, nodes.length - i - 1).inspect
+        text += "(#{defn(nodes[i])})" if nodes.length - i <= 1
+        text += "(#{defn(nodes.slice(i, nodes.length - i))})" if nodes.length - i > 1
+      end
+      @text += text
+      @text += "\n"
+    end
+  end
+
+  def append_cdecl(nodes)
+    #bail("Constants must be literals, for now.") if nodes[2][0] != :lit
+    @text += "(define #{nodes[1]} (#{nodes[2][0] == :lit ? nodes[2][1] : defn(nodes[2])}))\n"
+  end
+
+  def append_defn(nodes)
+    @text += "ohai"
+  end
+
   def reflect_nodes(nodes)
     for i in 0..nodes.length
       node = nodes[i]
       if node == :cdecl
-        bail("Constants must be literals, for now.") if nodes[i+2][0] != :lit
-        @constants[nodes[i+1]] = nodes[i+2][1]
+        append_cdecl(nodes.slice(i, 3))
       elsif node == :defn
-        @methods[nodes[i+1]] = {
-          :args => nodes[i+2][0],
-          :defn => nodes[i+3]
-        }
+        append_defn(nodes.slice(i, nodes.length - i))
       elsif node.is_a?(Array)
         reflect_nodes(node)
       end
@@ -24,8 +54,7 @@ class Rusche
   end
 
   def reflect_on_file(file)
-    @constants ||= {}
-    @methods ||= {}
+    @text = ""
 
     parsed = RubyParser.new.parse(File.read(file))
     bail("Invalid format. You must provide a module only.") if parsed[0] != :module
@@ -33,21 +62,12 @@ class Rusche
     puts parsed.inspect
 
     reflect_nodes(parsed)
+    puts @text
     parsed
-  end
-
-  def generate_scheme
-    code = ""
-    @constants.each do |constant, val|
-      code += "(define #{constant} (#{val}))\n"
-    end
-    #puts code
-    puts @methods
   end
 
   def main
     reflect_on_file('test.rb')
-    generate_scheme
   end
 end
 
