@@ -175,7 +175,7 @@ class Rusche
   end
 
   def main
-    reflect_on_file('crazyness.rb')
+    reflect_on_file('test.rb')
   end
 end
 

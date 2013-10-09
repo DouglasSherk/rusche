@@ -19,4 +19,12 @@ module ToCC
       3
     end
   end
+
+  def dat_shit_cray
+    if ((5 && 2 && 3) || 7) && !9
+      8
+    else
+      5
+    end
+  end
 end
