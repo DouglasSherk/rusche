@@ -27,13 +27,15 @@ class Rusche
     when :==
       # Bug with Ruby? I can't use |:=| here for some reason.
       "="
+    when :!
+      "not"
     else
       node
     end
   end
 
   def is_operator(node)
-    node == :+ || node == :- || node == :* || node == :/ || node == :== || node == :< || node == :<= || node == :> || node == :>=
+    node == :+ || node == :- || node == :* || node == :/ || node == :== || node == :< || node == :<= || node == :> || node == :>= || node == :!
   end
 
   def defn(nodes)
@@ -173,7 +175,7 @@ class Rusche
   end
 
   def main
-    reflect_on_file('list2.rb')
+    reflect_on_file('crazyness.rb')
   end
 end
 
